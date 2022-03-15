@@ -9,12 +9,12 @@ def main(argv):
     try:
         opts, args = getopt(argv, "hi:o:", ["ifile=", "ofile="])
     except GetoptError:
-        print("lssRead.py -i <inputfile> -o <outputfile>")
+        print("lssRead.py -i <input_file> -o <output_file>")
         exit(2)
 
     for opt, arg in opts:
         if opt == "-h":
-            print("lssRead.py -i <inputfile> -o <outputfile>")
+            print("lssRead.py -i <input_file> -o <output_file>")
             exit(1)
         elif opt in ("-i", "--ifile"):
             input_filename = arg.lstrip()
@@ -136,7 +136,7 @@ def main(argv):
                             else:
                                 output_file.write(f",{str_split[x]}")
 
-                    print(f">Team Matchup: {name1} <---> {name_str}")
+                    print(f">Team Match-up: {name1} <---> {name_str}")
 
                     line = in_file.readline()
 
@@ -241,7 +241,7 @@ def main(argv):
                             name_str = str_split[1]
                             loop_pos = 2
 
-                            while name_completed == False:
+                            while not name_completed:
                                 try:
                                     if str_split[loop_pos].startswith("bk"):
                                         temp_var = str_split[loop_pos].replace("bk", "")
@@ -272,15 +272,6 @@ def main(argv):
 
     output_file.close()
     print("\n\n>> LSSParse complete!")
-
-    # Used for replacing unicode symbol with proper decimal value in string
-    # value = value.replace("½", ".5")
-
-    # This is for byte stream unicode
-    # if value == repr("b'\xc2\xbd\n\'"):
-    #     print("No conversion")
-    # else:
-    #     print("Conversion= .5")
 
 
 if __name__ == "__main__":
