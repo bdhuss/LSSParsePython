@@ -135,6 +135,8 @@ def main(argv):
                         name_str = ""
 
                         for x in range(len(str_split)):
+                            # This line should always be in the same order
+                            # Example: <TEAM_#> - <NAME_OF_TEAM>
                             match x:
                                 case 0: output_file.write(str_split[x])
                                 case 1: output_file.write(",")
@@ -158,24 +160,14 @@ def main(argv):
                                     name_str = str_split[x]
 
                                 else:
-                                    if not name_completed:
-                                        try:
-                                            if str_split[x].startswith("bk"):  # catches book avg vs established avg
-                                                temp_var = str_split[x].replace("bk", "")
-                                                temp_int = int(temp_var)
-                                                output_file.write(f",{name_str},{temp_int}")
-                                                name_completed = True
-
-                                            else:  # normal average
-                                                temp_int = int(str_split[x])
-                                                output_file.write(f",{name_str},{temp_int}")
-                                                name_completed = True
-
-                                        except ValueError:
-                                            name_str = f"{name_str} {str_split[x]}"
+                                    if name_completed:
+                                        output_file.write(f",{str_split[x]}")
 
                                     else:
-                                        output_file.write(f",{str_split[x]}")
+                                        name_completed, name_str = parse_name(name_str, str_split[x])
+
+                                        if name_completed:
+                                            output_file.write(f",{name_str},{str_split[x]}")
 
                             print(f">#{str_split[0]}: {name_str}")
 
@@ -187,27 +179,11 @@ def main(argv):
                                 elif x == 1:  # start of player name
                                     name_str = str_split[x]
                                     if name_str == "VACANT":  # this VACANT is always the same
-                                        output_file.write(f",{name_str},120,124,0,0,,,120,120,120,360,672\n")
+                                        output_file.write(f",{name_str},120,124,0,0,,,v120,v120,v120,360,672\n")
                                         break
 
                                 else:
-                                    if not name_completed:
-                                        try:
-                                            if str_split[x].startswith("bk"):  # catches book avg vs established avg
-                                                temp_var = str_split[x].replace("bk", "")
-                                                temp_int = int(temp_var)
-                                                output_file.write(f",{name_str},{temp_int}")
-                                                name_completed = True
-
-                                            else:  # normal average
-                                                temp_int = int(str_split[x])
-                                                output_file.write(f",{name_str},{temp_int}")
-                                                name_completed = True
-
-                                        except ValueError:
-                                            name_str = f"{name_str} {str_split[x]}"
-
-                                    else:
+                                    if name_completed:
                                         if str_split[x] == "0" and empty_games:
                                             for y in range(4):  # empty games
                                                 output_file.write(",")
@@ -218,6 +194,12 @@ def main(argv):
                                         else:
                                             output_file.write(f",{str_split[x]}")
 
+                                    else:
+                                        name_completed, name_str = parse_name(name_str, str_split[x])
+
+                                        if name_completed:
+                                            output_file.write(f",{name_str},{str_split[x]}")
+
                             print(f">#{str_split[0]}: {name_str}")
 
                         elif len(str_split) >= 9:  # usually an additional roster member that has no recorded games
@@ -226,24 +208,10 @@ def main(argv):
                             loop_pos = 2
 
                             while not name_completed:
-                                try:
-                                    if str_split[loop_pos].startswith("bk"):
-                                        temp_var = str_split[loop_pos].replace("bk", "")
-                                        temp_int = int(temp_var)
-                                        output_file.write(f",{name_str},{temp_int}")
-                                        name_completed = True
+                                name_completed, name_str = parse_name(name_str, str_split[loop_pos])
+                                loop_pos += 1
 
-                                    else:
-                                        temp_int = int(str_split[loop_pos])
-                                        output_file.write(f",{name_str}, {temp_int}")
-                                        name_completed = True
-
-                                except ValueError:
-                                    name_str = f"{name_str} {str_split[loop_pos]}"
-                                    loop_pos += 1
-
-                            output_file.write(f",{str_split[loop_pos + 1]},0,0,,,,,,0,0\n")
-
+                            output_file.write(f",{name_str},{str_split[loop_pos-1]},{str_split[loop_pos]},0,0,,,,,,0,0\n")
                             print(f"#{str_split[0]}: {name_str}")
 
                         else:
@@ -260,7 +228,10 @@ def main(argv):
 
 def parse_name(name_str, split_str):
     try:
-        float(split_str)  # attempt to parse second argument to a float
+        if split_str.startswith("bk"):
+            split_str = split_str.replace("bk", "")  # remove preceding "bk" from averages
+
+        float(split_str)  # if it's not a float, the name has yet to be completed
         return True, name_str
 
     except ValueError:  # if parse attempt fails, assume name is not yet complete
