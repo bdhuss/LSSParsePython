@@ -77,23 +77,18 @@ def main(argv):
                             name_str = str_split[x]
 
                         else:
-                            if not name_completed:
-                                # As of creation, no team name includes numbers beyond their first index
-                                try:
-                                    temp_float = float(str_split[x])
-                                    name_completed = True
-                                    output_file.write(f"{name_str},{temp_float}")
-
-                                except ValueError:
-                                    name_str = f"{name_str} {str_split[x]}"
-
-                            else:
-                                half_str = "½"  # need to catch ½ symbols and replace with a .5
-                                if half_str in str_split[x]:
-                                    temp_str = str_split[x].replace(half_str, ".5")
+                            if name_completed:
+                                if "½" in str_split[x]:  # we don't want "½" symbols
+                                    temp_str = str_split[x].replace("½", ".5")
                                     output_file.write(f",{temp_str}")
                                 else:
                                     output_file.write(f",{str_split[x]}")
+
+                            else:
+                                name_completed, name_str = parse_name(name_str, str_split[x])
+
+                                if name_completed:
+                                    output_file.write(f"{name_str},{str_split[x]}")
 
                     print(f">Team Standings: {name_str}")
                     line = in_file.readline()
@@ -116,28 +111,23 @@ def main(argv):
                             second_name_flag = False
 
                         else:
-                            if not name_completed:
-                                # As of creation, no team name includes numbers beyond their first index
-                                try:
-                                    temp_int = int(str_split[x])
-                                    name_completed = True
-                                    output_file.write(f",{name_str},{temp_int}")
-
-                                except ValueError:
-                                    name_str = f"{name_str} {str_split[x]}"
-
-                            elif str_split[x] == "<--->":  # the break between first and second team
+                            if str_split[x] == "<--->":  # the string BLS uses "vs"
                                 name1 = name_str
                                 name_completed = False
                                 second_name_flag = True
                                 name_str = ""
                                 output_file.write(f",{str_split[x]}")
 
-                            else:
+                            elif name_completed:
                                 output_file.write(f",{str_split[x]}")
 
-                    print(f">Team Match-up: {name1} <---> {name_str}")
+                            else:
+                                name_completed, name_str = parse_name(name_str, str_split[x])
 
+                                if name_completed:
+                                    output_file.write(f",{name_str},{str_split[x]}")
+
+                    print(f">Team Match-up: {name1} <---> {name_str}")
                     line = in_file.readline()
 
                 elif team_roster_flag:
@@ -145,17 +135,11 @@ def main(argv):
                         name_str = ""
 
                         for x in range(len(str_split)):
-                            if x == 0:  # first split is team number
-                                output_file.write(str_split[x])
-
-                            elif x == 1:  # second split is ignored
-                                output_file.write(",")
-
-                            elif x == 2:  # third split is start of team name
-                                name_str = str_split[x]
-
-                            else:
-                                name_str = f"{name_str} {str_split[x]}"
+                            match x:
+                                case 0: output_file.write(str_split[x])
+                                case 1: output_file.write(",")
+                                case 2: name_str = str_split[x]
+                                case _: name_str = f"{name_str} {str_split[x]}"
 
                         output_file.write(name_str)
                         print(f">Team Roster: {name_str}")
@@ -271,7 +255,17 @@ def main(argv):
                     print(f"> ERROR: Unknown category for line: {str_split}")
 
     output_file.close()
-    print("\n\n>> LSSParse complete!")
+    print("\n>> LSSParse complete!")
+
+
+def parse_name(name_str, split_str):
+    try:
+        float(split_str)  # attempt to parse second argument to a float
+        return True, name_str
+
+    except ValueError:  # if parse attempt fails, assume name is not yet complete
+        temp_str = f"{name_str} {split_str}"
+        return False, temp_str
 
 
 if __name__ == "__main__":
