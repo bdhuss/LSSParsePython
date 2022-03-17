@@ -4,7 +4,7 @@ LSSParse
 Parses a flat text file, copy & pasted, version of my bowling leage standing sheets output from CDE's BLS software to a CSV.
 
 Current usage:
-lssRead.py -i <input_file> -o <output_file>
+LSSParse.py -i <input_file> -o <output_file>
 
 Parse sections, in order:
 - Team Standings
