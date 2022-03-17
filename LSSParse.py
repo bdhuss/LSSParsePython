@@ -9,12 +9,12 @@ def main(argv):
     try:
         opts, args = getopt(argv, "hi:o:", ["ifile=", "ofile="])
     except GetoptError:
-        print("lssRead.py -i <input_file> -o <output_file>")
+        print("LSSParse.py -i <input_file> -o <output_file>")
         exit(2)
 
     for opt, arg in opts:
         if opt == "-h":
-            print("lssRead.py -i <input_file> -o <output_file>")
+            print("LSSParse.py -i <input_file> -o <output_file>")
             exit(1)
         elif opt in ("-i", "--ifile"):
             input_filename = arg.lstrip()
@@ -22,7 +22,8 @@ def main(argv):
             output_filename = arg.lstrip()
 
     if not exists(input_filename):
-        print(f"ERROR: {input_filename} does not exists.")
+        print(f"ERROR: Incorrect command syntax, or in file does not exist.")
+        print("SYNTAX: LSSParse.py -i <input_file> -o <output_file>")
         exit(1)
 
     if exists(output_filename):
